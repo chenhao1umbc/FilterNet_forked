@@ -115,7 +115,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         )
 
         if self.args.use_amp:
-            scaler = torch.cuda.amp.GradScaler()
+            scaler = torch.amp.GradScaler()
 
         for epoch in range(self.args.train_epochs):
             iter_count = 0

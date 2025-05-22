@@ -8,6 +8,8 @@ import os
 from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
 from utils.print_args import print_args
 import random
+import sys
+import datetime
 
 
 def create_args_for_experiment(pred_len, model_name="PaiFilter"):
@@ -246,43 +248,111 @@ def run_experiment(args):
         torch.cuda.empty_cache()
 
 
+class Logger:
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "w")
+
+    def write(self, message):
+        self.log.write(message)
+        self.log.flush()
+
+    def flush(self):
+        self.log.flush()
+
+    def close(self):
+        self.log.close()
+
+
 def main():
     """Main function to run all experiments"""
-    # Set random seeds for reproducibility
-    fix_seed = 2021
-    random.seed(fix_seed)
-    torch.manual_seed(fix_seed)
-    np.random.seed(fix_seed)
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_filename = f"experiment_log_{timestamp}.txt"
 
-    # Set CUDA device (equivalent to export CUDA_VISIBLE_DEVICES=2)
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    print(f"Starting experiments. All output will be saved to: {log_filename}")
 
-    # Define prediction lengths to test
-    pred_lengths = [96, 192, 336, 720]
-    model_name = "PaiFilter"
+    logger = Logger(log_filename)
+    sys.stdout = logger  # Redirect all output to file only
 
-    print(f"Starting experiments with model: {model_name}")
-    print(f"Prediction lengths to test: {pred_lengths}")
-    print("=" * 80)
+    try:
+        # Set random seeds for reproducibility
+        fix_seed = 2021
+        random.seed(fix_seed)
+        torch.manual_seed(fix_seed)
+        np.random.seed(fix_seed)
 
-    # Run experiments for each prediction length
-    for pred_len in pred_lengths:
-        print(f"\n{'='*20} Starting experiment with pred_len={pred_len} {'='*20}")
+        # Set CUDA device (equivalent to export CUDA_VISIBLE_DEVICES=2)
+        os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
-        # Create arguments for this experiment
-        args = create_args_for_experiment(pred_len, model_name)
+        # Define prediction lengths to test
+        pred_lengths = [96, 192, 336, 720]
+        model_name = "PaiFilter"
 
-        # Run the experiment
-        run_experiment(args)
+        print(f"Starting experiments with model: {model_name}")
+        print(f"Prediction lengths to test: {pred_lengths}")
+        print("=" * 80)
 
-        print(f"{'='*20} Completed experiment with pred_len={pred_len} {'='*20}\n")
+        # Run experiments for each prediction length
+        for pred_len in pred_lengths:
+            print(f"\n{'='*20} Starting experiment with pred_len={pred_len} {'='*20}")
 
-    print("All experiments completed!")
+            # Create arguments for this experiment
+            args = create_args_for_experiment(pred_len, model_name)
+
+            # Run the experiment
+            run_experiment(args)
+
+            print(f"{'='*20} Completed experiment with pred_len={pred_len} {'='*20}\n")
+
+        print("All experiments completed!")
+
+    finally:
+        sys.stdout = logger.terminal  # Restore console output
+        logger.close()
+
+    print(f"Experiments completed! Check {log_filename} for results.")
 
 
 if __name__ == "__main__":
     main()
 
 # %%
+import sys
 
+
+class Logger:
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, "a")
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+
+    def close(self):
+        self.log.close()
+
+
+def run_experiment(args=None):
+    print("This goes to both")  # Before redirection
+
+
+def main():
+    print("This goes to console only")  # Before redirection
+
+    logger = Logger("log.txt")
+    sys.stdout = logger  # <-- Redirection happens here
+
+    print("This goes to BOTH console and log.txt")  # After redirection
+    run_experiment()  # Everything inside this function is also logged
+
+    sys.stdout = logger.terminal  # Restore normal output
+    print("This goes to console only again")  # After restoration
+
+
+main()
 # %%
