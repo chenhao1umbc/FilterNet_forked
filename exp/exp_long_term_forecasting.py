@@ -58,7 +58,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 )
                 # encoder - decoder
                 if self.args.use_amp:
-                    with torch.cuda.amp.autocast():
+                    with torch.amp.autocast():
                         if self.args.output_attention:
                             outputs = self.model(
                                 batch_x, batch_x_mark, dec_inp, batch_y_mark
@@ -259,7 +259,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 )
                 # encoder - decoder
                 if self.args.use_amp:
-                    with torch.cuda.amp.autocast():
+                    with torch.amp.autocast():
                         if self.args.output_attention:
                             outputs = self.model(
                                 batch_x, batch_x_mark, dec_inp, batch_y_mark
